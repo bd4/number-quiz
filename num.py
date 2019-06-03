@@ -1,6 +1,7 @@
 import random
 import sys
 from collections import OrderedDict
+import time
 
 
 num_ru = ['ноль', 'один',
@@ -120,19 +121,25 @@ def quiz(maxn=9999):
 
 
 def test():
+    ok = True
     for n in range(9999):
         name = get_num_ru(n)
         n2 = parse_ru_num(name)
         if n2 != n:
+            ok = False
             print(n, ' ', name, ' ', n2)
-
+            break
+    return ok
 
 
 if __name__ == '__main__':
-    test()
-    n = 1
+    start = time.time()
+    test_ok = test()
+    end = time.time()
+    test_time = end - start
+    print('test', test_ok, test_time)
+    maxn = 999
     if len(sys.argv) > 1:
-        n = int(sys.argv[1])
-    for i in range(n):
-        quiz()
-
+        maxn = int(sys.argv[1])
+    if maxn:
+        quiz(maxn=maxn)
