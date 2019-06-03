@@ -86,25 +86,61 @@ def get_num_ru(n):
     s = []
     if n <= 20:
         return num_ru[n]
-    for (name, val) in reversed(ru_num.items()):
-        if val <= n:
-            s.append(name)
-            n = n - val
-            if n <= 20:
-                break
+    t = n // 1000
+    n = n % 1000
+    if t == 0:
+        pass
+    elif t == 1:
+        s.append('тысяча')
+    elif t == 2:
+        s.append('две тысячи')
+    elif t < 5:
+        s.append(num_ru[t])
+        s.append('тысячи')
+    else:
+        s.append(num_ru[t])
+        s.append('тысяч')
+
+    h = n // 100
+    n = n % 100
+    if h == 0:
+        pass
+    elif h == 1:
+        s.append('сто')
+    elif h == 2:
+        s.append('двести')
+    elif h < 5:
+        s.append(num_ru[h] + 'ста')
+    else:
+        s.append(num_ru[h] + 'сот')
+
+    tens = n // 10
+    n = n % 10
+    if tens == 0:
+        pass
+    elif tens == 1:
+        s.append(num_ru[tens * 10 + n])
+        n = 0
+    elif tens < 4:
+        s.append(num_ru[tens] + 'дцать')
+    elif tens == 4:
+        s.append('сорок')
+    elif tens < 9:
+        s.append(num_ru[tens] + 'десят')
+    else:
+        s.append('девяносто')
     if n > 0:
         s.append(num_ru[n])
     return ' '.join(s)
 
 
 def quiz(maxn=9999):
-    m = len(num_ru)
     a = random.randint(1, maxn-1)
     b = random.randint(1, maxn-a)
-    c = (a + b) % maxn
+    c = (a + b)
     print(get_num_ru(a), '+', get_num_ru(b))
     correct = False
-    for i in range(5):
+    for i in range(3):
         ans = input('answer:').strip().lower()
         ans_num = parse_ru_num(ans)
         if ans_num is None:
