@@ -57,6 +57,33 @@ ru_thousands = {
 ru_num.update(ru_thousands)
 
 
+months_ru = [
+    'январь',
+    'февраль',
+    'март',
+    'апрель',
+    'май',
+    'июнь',
+    'июль',
+    'август',
+    'сентябрь',
+    'октябрь',
+    'ноябрь',
+    'декабрь',
+]
+
+
+days_ru = [
+    'понедельник',
+    'вторник',
+    'среда',
+    'четверг',
+    'пятница',
+    'суббота',
+    'воскресенье',
+]
+
+
 def parse_ru_num(s):
     parts = s.strip().split()
     if not parts:
@@ -156,6 +183,19 @@ def quiz(maxn=9999):
         print('Answer:', get_num_ru(c))
 
 
+def quiz_time(words):
+    n = len(words)
+    start = random.randint(0, n-1)
+    delta = random.randint(1, n-1)
+    correct = words[(start + delta) % n]
+    print(words[start], '+', get_num_ru(delta))
+    ans = input('answer:').strip().lower()
+    if ans == correct:
+        print('Correct!')
+    else:
+        print('Answer:', correct)
+
+
 def test():
     ok = True
     for n in range(9999):
@@ -177,5 +217,9 @@ if __name__ == '__main__':
     maxn = 999
     if len(sys.argv) > 1:
         maxn = int(sys.argv[1])
-    if maxn:
+    if maxn == -1:
+        quiz_time(days_ru)
+    elif maxn == -2:
+        quiz_time(months_ru)
+    elif maxn:
         quiz(maxn=maxn)
