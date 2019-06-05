@@ -2,6 +2,7 @@ import random
 import sys
 from collections import OrderedDict
 import time
+import argparse
 
 
 num_ru = ['ноль', 'один',
@@ -208,18 +209,34 @@ def test():
     return ok
 
 
+def get_args():
+    parser = argparse.ArgumentParser(
+                 description=
+                 'Russian language number quiz')
+    parser.add_argument('-n', '--numbers', action='store_true')
+    parser.add_argument('-d', '--days', action='store_true')
+    parser.add_argument('-m', '--months', action='store_true')
+    parser.add_argument('-t', '--test', action='store_true')
+    parser.add_argument('-x', '--max', type=int,
+                       default=9999)
+    return parser.parse_args()
+
+
 if __name__ == '__main__':
-    start = time.time()
-    test_ok = test()
-    end = time.time()
-    test_time = end - start
-    print('test', test_ok, test_time)
-    maxn = 999
-    if len(sys.argv) > 1:
-        maxn = int(sys.argv[1])
-    if maxn == -1:
-        quiz_time(days_ru)
-    elif maxn == -2:
-        quiz_time(months_ru)
-    elif maxn:
-        quiz(maxn=maxn)
+    args = get_args()
+    if args.test:
+        start = time.time()
+        test_ok = test()
+        end = time.time()
+        test_time = end - start
+        print('test', test_ok, test_time)
+    quizes = []
+    if args.numbers:
+        quizes.append(lambda : quiz(maxn=args.max))
+    if args.days:
+        quizes.append(lambda : quiz_time(days_ru))
+    if args.months:
+        quizes.append(lambda : quiz_time(months_ru))
+    if quizes:
+        fn = random.choice(quizes)
+        fn()
