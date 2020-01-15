@@ -3,7 +3,7 @@ use std::io::Write;
 
 use rand::Rng;
 
-const num_ru: &[&str] = &[
+const NUM_RU: &[&str] = &[
     "ноль", "один",
     "два", "три",
     "четыре", "пять", "шесть",
@@ -20,7 +20,7 @@ const num_ru: &[&str] = &[
     "девятнадцать",
     "двадцать"];
 
-const months_ru: &[&str] = &[
+const MONTHS_RU: &[&str] = &[
     "январь",
     "февраль",
     "март",
@@ -35,7 +35,7 @@ const months_ru: &[&str] = &[
     "декабрь",
 ];
 
-const days_ru:&[&str] = &[
+const DAYS_RU:&[&str] = &[
     "понедельник",
     "вторник",
     "среда",
@@ -52,7 +52,7 @@ fn quiz_time(words: &[&str]) {
     let start = rng.gen_range(0, n-1);
     let delta = rng.gen_range(1, n-1);
     let correct = words[(start + delta) % n];
-    print!("{} + {} = ", words[start], num_ru[delta]);
+    print!("{} + {} = ", words[start], NUM_RU[delta]);
     io::stdout().flush().unwrap();
     let ans = read_str();
     if ans.trim() == correct {
@@ -86,11 +86,11 @@ fn main() {
 
     let num = read_num();
 
-    if num < num_ru.len() {
-        println!("The number {} is {}", num, num_ru[num]);
+    if num < NUM_RU.len() {
+        println!("The number {} is {}", num, NUM_RU[num]);
     } else {
         println!("The number {} is too big for me!", num);
     }
 
-    quiz_time(days_ru);
+    quiz_time(DAYS_RU);
 }
