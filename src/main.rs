@@ -146,12 +146,15 @@ fn quiz(ru_num: &HashMap<&str, usize>, maxn: usize) {
     let mut correct = false;
     for _ in 0..3 {
         let ans_s = read_str();
-        let ans_n = parse_ru_num(ru_num, ans_s.trim()).unwrap();
-        if ans_n == c {
-            correct = true;
-            break;
-        } else {
-            println!("value {} is not correct, try again: ", ans_s.trim());
+        match parse_ru_num(ru_num, ans_s.trim()) {
+            Some(ans_n) if ans_n == c => { correct = true; break; },
+            Some(ans_n)               => { 
+                println!("value {} = {} is not correct, try again: ",
+                         ans_s.trim(), ans_n);
+            },
+            None                      => {
+                println!("value {} is mispelled, try again: ", ans_s.trim());
+            },
         }
     }
     if correct {
@@ -248,5 +251,5 @@ fn main() {
     test(&ru_num, 9999);
 
     //quiz_time(DAYS_RU);
-    //quiz(&ru_num, 20);
+    quiz(&ru_num, 20);
 }
