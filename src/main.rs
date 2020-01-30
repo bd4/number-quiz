@@ -1,5 +1,6 @@
 use std::io;
 use std::io::Write;
+use std::collections::HashMap;
 
 use rand::Rng;
 
@@ -46,6 +47,121 @@ const DAYS_RU:&[&str] = &[
 ];
 
 
+fn parse_ru_num(ru_num: &HashMap<&str, usize>, s: &str) -> Option<usize> {
+    let mut parts: Vec<&str> = s.trim().split_whitespace().collect();
+    if parts.len() < 1 {
+        return None;
+    }
+    let mut total: usize = 0;
+    if parts[0] == "тысяча" {
+        total = 1000;
+        parts.remove(0);
+    } else if parts.len() > 1 && parts[1].starts_with("тысяч") {
+        let t : String = parts[0..=1].join(" ");
+        match ru_num.get(&*t) {
+            Some(n) if *n >= 1000 => total += *n,
+            _ => return None,
+        }
+        parts.remove(0);
+        parts.remove(0);
+    }
+    for p in parts {
+        match ru_num.get(p) {
+            Some(n) => total += *n,
+            None => return None,
+        }
+    }
+    return Some(total)
+}
+
+
+fn get_num_ru(n: usize) -> String {
+    if n <= 20 {
+        return NUM_RU[n].to_string();
+    }
+    let mut result = String::with_capacity(
+                        f32::log10(n as f32).ceil() as usize * 6);
+    let t = n / 1000;
+    let n = n % 1000;
+    match t {
+        0 => {},
+        1 =>         result.push_str(" тысяча"),
+        2 =>         result.push_str(" две тысячи"),
+        3 | 4 =>   { result.push_str(" "); result.push_str(NUM_RU[t]);
+                     result.push_str(" тысячи"); },
+        5 ..= 9 => { result.push_str(" "); result.push_str(NUM_RU[t]);
+                     result.push_str(" тысяч"); },
+        _ => {}
+    }
+
+    let h = n / 100;
+    let n = n % 100;
+    match h {
+        0 => {},
+        1 => result.push_str(" сто"),
+        2 => result.push_str(" двести"),
+        3 | 4 => { result.push_str(" "); result.push_str(NUM_RU[h]);
+                   result.push_str("ста"); },
+        5 ..= 9 => { result.push_str(" "); result.push_str(NUM_RU[h]);
+                     result.push_str("сот"); },
+        _ => {}
+    }
+
+    let tens = n / 10;
+    let mut n = n % 10;
+    match tens {
+        0 => {},
+        1 =>     { result.push_str(" ");
+                   result.push_str(NUM_RU[tens * 10 + n]);
+                   n=0 },
+        2 | 3 => { result.push_str(" "); result.push_str(NUM_RU[tens]);
+                   result.push_str("дцать"); },
+        4 => result.push_str(" сорок"),
+        5 ..= 8 => { result.push_str(" "); result.push_str(NUM_RU[tens]);
+                     result.push_str("десят"); },
+        9       => { result.push_str(" девяносто"); },
+        _ => {},
+    }
+
+    if n > 0 {
+        result.push_str(" ");
+        result.push_str(NUM_RU[n]);
+    }
+    if result.starts_with(" ") {
+        result.remove(0);
+    }
+    return result;
+}
+
+
+fn quiz(ru_num: &HashMap<&str, usize>, maxn: usize) {
+    let mut rng = rand::thread_rng();
+    let a = rng.gen_range(1, maxn-1);
+    let b = rng.gen_range(1, maxn-a);
+    let c = a + b;
+ 
+    println!("{} + {} = ", get_num_ru(a), get_num_ru(b));
+    io::stdout().flush().unwrap();
+
+    let mut correct = false;
+    for _ in 0..3 {
+        let ans_s = read_str();
+        let ans_n = parse_ru_num(ru_num, ans_s.trim()).unwrap();
+        if ans_n == c {
+            correct = true;
+            break;
+        } else {
+            println!("value {} is not correct, try again: ", ans_s.trim());
+        }
+    }
+    if correct {
+        println!("Correct! {} + {} = {}", a, b, c)
+    } else {
+        println!("Too many attempts, correct answer: {}", get_num_ru(c));
+    }
+}
+
+
 fn quiz_time(words: &[&str]) {
     let n : usize = words.len();
     let mut rng = rand::thread_rng();
@@ -74,23 +190,63 @@ fn read_str() -> String {
 
 
 fn read_num() -> usize {
-    let mut ans = read_str();
+    let ans = read_str();
     let num: usize = ans.trim().parse().expect("Not a number!");
     return num;
 }
 
 
+fn test(ru_num : &HashMap<&str, usize>, maxn : usize) -> bool {
+    for n in 0..maxn {
+        let name = get_num_ru(n);
+        match parse_ru_num(ru_num, &*name) {
+            Some(n2) if n2 != n => { println!("{} {} {}", n, name, n2);
+                                   return false; },
+            None => { println!("{} {} failed to parse", n, name);
+                      return false; },
+
+            _ => {},
+        }
+    }
+    return true;
+}
+
+
 fn main() {
-    print!("Enter number: ");
-    io::stdout().flush().unwrap();
-
-    let num = read_num();
-
-    if num < NUM_RU.len() {
-        println!("The number {} is {}", num, NUM_RU[num]);
-    } else {
-        println!("The number {} is too big for me!", num);
+    let mut ru_num : HashMap<&str, usize> = HashMap::new();
+    for i in 0..NUM_RU.len() {
+        ru_num.insert(NUM_RU[i], i);
     }
 
-    quiz_time(DAYS_RU);
+    ru_num.insert("тридцать", 30);
+    ru_num.insert("сорок", 40);
+    ru_num.insert("пятьдесят", 50);
+    ru_num.insert("шестьдесят", 60);
+    ru_num.insert("семьдесят", 70);
+    ru_num.insert("восемьдесят", 80);
+    ru_num.insert("девяносто", 90);
+    ru_num.insert("сто", 100);
+    ru_num.insert("двести", 200);
+    ru_num.insert("триста", 300);
+    ru_num.insert("четыреста", 400);
+    ru_num.insert("пятьсот", 500);
+    ru_num.insert("шестьсот", 600);
+    ru_num.insert("семьсот", 700);
+    ru_num.insert("восемьсот", 800);
+    ru_num.insert("девятьсот", 900);
+    ru_num.insert("тысяча", 1000);
+    ru_num.insert("одна тысяча", 1000);
+    ru_num.insert("две тысячи", 2000);
+    ru_num.insert("три тысячи", 3000);
+    ru_num.insert("четыре тысячи", 4000);
+    ru_num.insert("пять тысяч", 5000);
+    ru_num.insert("шесть тысяч", 6000);
+    ru_num.insert("семь тысяч", 7000);
+    ru_num.insert("восемь тысяч", 8000);
+    ru_num.insert("девять тысяч", 9000);
+
+    test(&ru_num, 9999);
+
+    //quiz_time(DAYS_RU);
+    //quiz(&ru_num, 20);
 }
