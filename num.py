@@ -197,9 +197,9 @@ def quiz_time(words):
         print('Answer:', correct)
 
 
-def test():
+def test(maxn):
     ok = True
-    for n in range(9999):
+    for n in range(maxn):
         name = get_num_ru(n)
         n2 = parse_ru_num(name)
         if n2 != n:
@@ -226,7 +226,7 @@ if __name__ == '__main__':
     args = get_args()
     if args.test:
         start = time.time()
-        test_ok = test()
+        test_ok = test(maxn=args.max)
         end = time.time()
         test_time = end - start
         print('test', test_ok, test_time)
