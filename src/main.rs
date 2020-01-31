@@ -1,8 +1,14 @@
+extern crate clap;
+
 use std::io;
 use std::io::Write;
 use std::collections::HashMap;
 
+use std::time::{Duration, Instant};
+
 use rand::Rng;
+
+use clap::{Arg, App};
 
 const NUM_RU: &[&str] = &[
     "ноль", "один",
@@ -136,8 +142,8 @@ fn get_num_ru(n: usize) -> String {
 
 fn quiz(ru_num: &HashMap<&str, usize>, maxn: usize) {
     let mut rng = rand::thread_rng();
-    let a = rng.gen_range(1, maxn-1);
-    let b = rng.gen_range(1, maxn-a);
+    let a = rng.gen_range(1, maxn);
+    let b = rng.gen_range(1, maxn-a+1);
     let c = a + b;
  
     println!("{} + {} = ", get_num_ru(a), get_num_ru(b));
@@ -248,8 +254,66 @@ fn main() {
     ru_num.insert("восемь тысяч", 8000);
     ru_num.insert("девять тысяч", 9000);
 
-    test(&ru_num, 9999);
+
+    let matches = App::new("numrs")
+        .about("Russian language number quiz")
+        .version("0.1")
+        .author("Bryce Allen <bryce@bda.space>")
+        .arg(Arg::with_name("numbers")
+                .short("n").long("numbers")
+                .help("Plain number quiz"))
+        .arg(Arg::with_name("days")
+                .short("d").long("days")
+                .help("Days of the week quiz"))
+        .arg(Arg::with_name("months")
+                .short("m").long("months")
+                .required(false)
+                .help("Months of the year quiz"))
+        .arg(Arg::with_name("test")
+                .short("t").long("test")
+                .help("Run roundtrip parse test"))
+        .arg(Arg::with_name("max")
+                .short("x").long("max")
+                .takes_value(true)
+                .default_value("9999")
+                .help("Max value for numbers test"))
+        .get_matches();
+
+    let maxn;
+    let max_str = matches.value_of("max");
+    match max_str {
+        None => { println!("Failed to parse max"); maxn = 9999 },
+        Some(s) => {
+            match s.parse::<usize>() {
+                Ok(n) => { maxn = n; },
+                Err(_) => { println!("Failed to parse max"); maxn = 9999 },
+            }
+        }
+    }
+    
+    if matches.is_present("test") {
+        let start = Instant::now();
+        let test_ok = test(&ru_num, maxn);
+        let test_time = start.elapsed().as_secs_f32();
+        println!("test {} {}", test_ok, test_time)
+    }
+
+    let mut quizes : Vec<Box<dyn Fn() -> ()>> = Vec::with_capacity(3);
+    if matches.is_present("numbers") {
+        quizes.push(Box::new(move || { quiz(&ru_num, maxn) }));
+    }
+    if matches.is_present("days") {
+        quizes.push(Box::new(move || { quiz_time(DAYS_RU) }));
+    }
+    if matches.is_present("months") {
+        quizes.push(Box::new(move || { quiz_time(MONTHS_RU) }));
+    }
+    if quizes.len() > 0 {
+        let mut rng = rand::thread_rng();
+        let i = rng.gen_range(0, quizes.len());
+        (*quizes[i])();
+    }
 
     //quiz_time(DAYS_RU);
-    quiz(&ru_num, 20);
+    //quiz(&ru_num, 20);
 }
