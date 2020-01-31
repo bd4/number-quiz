@@ -4,13 +4,15 @@ use std::io;
 use std::io::Write;
 use std::collections::HashMap;
 
-use std::time::{Duration, Instant};
+use std::time::Instant;
 
 use rand::Rng;
 
 use clap::{Arg, App};
 
-const NUM_RU: &[&str] = &[
+
+// reference to an array of str references, with static storage
+const NUM_RU: &[&'static str] = &[
     "ноль", "один",
     "два", "три",
     "четыре", "пять", "шесть",
@@ -27,7 +29,7 @@ const NUM_RU: &[&str] = &[
     "девятнадцать",
     "двадцать"];
 
-const MONTHS_RU: &[&str] = &[
+const MONTHS_RU: &[&'static str] = &[
     "январь",
     "февраль",
     "март",
@@ -42,7 +44,7 @@ const MONTHS_RU: &[&str] = &[
     "декабрь",
 ];
 
-const DAYS_RU:&[&str] = &[
+const DAYS_RU:&[&'static str] = &[
     "понедельник",
     "вторник",
     "среда",
@@ -171,6 +173,9 @@ fn quiz(ru_num: &HashMap<&str, usize>, maxn: usize) {
 }
 
 
+// Create a quiz involving addition of time words and integers.
+// For example, in English, January + 11 = December, and
+// Tuesday + 2 = Thursday
 fn quiz_time(words: &[&str]) {
     let n : usize = words.len();
     let mut rng = rand::thread_rng();
@@ -298,6 +303,13 @@ fn main() {
         println!("test {} {}", test_ok, test_time)
     }
 
+    // Making a list of void closures is a little tricky in rust. A box
+    // must be used so something owns the heap allocated closure. The
+    // "dyn" train needs to be used in the signature because closures
+    // each have their own unique type, but they can share the train
+    // signature. Not sure why/what dyn is yet... but it seems to be
+    // necessary. The move is used to move ownership of the closure into
+    // the Box.
     let mut quizes : Vec<Box<dyn Fn() -> ()>> = Vec::with_capacity(3);
     if matches.is_present("numbers") {
         quizes.push(Box::new(move || { quiz(&ru_num, maxn) }));
@@ -311,9 +323,8 @@ fn main() {
     if quizes.len() > 0 {
         let mut rng = rand::thread_rng();
         let i = rng.gen_range(0, quizes.len());
-        (*quizes[i])();
+        // dereferencing the Box containing the closure seems to happen
+        // automagically here
+        quizes[i]();
     }
-
-    //quiz_time(DAYS_RU);
-    //quiz(&ru_num, 20);
 }
