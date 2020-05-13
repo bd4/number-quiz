@@ -11,7 +11,7 @@ use rand::Rng;
 use clap::{Arg, App};
 
 
-// reference to an array of str references, with static storage
+// reference to an array of str references, with static lifetime
 const NUM_RU: &[&'static str] = &[
     "ноль", "один",
     "два", "три",
